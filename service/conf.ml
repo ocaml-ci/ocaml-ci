@@ -141,6 +141,18 @@ let pool_of_arch = function
   | `Ppc64le -> `Linux_ppc64
   | `Riscv64 -> `Linux_riscv64
 
+let disabled_arches = [ (* `Riscv64 (\* Unsufficient capacity in the pool *\) *) ]
+
+(* Arches supported by [distro] but unsupported by [DD.master_distro]. *)
+let supplementary_arches ov master_distro distro =
+  if List.mem distro (List.map DD.resolve_alias DD.latest_distros) then
+    let master_distro_arches = DD.distro_arches ov (master_distro :> DD.t)
+    and distro_arches = DD.distro_arches ov (distro :> DD.t) in
+    List.filter
+      (fun arch -> not (List.mem arch master_distro_arches))
+      distro_arches
+  else []
+
 let platforms ~profile ~include_macos ~include_freebsd opam_version =
   let v ?(arch = `X86_64) ?(lower_bound = false) label distro ocaml_version =
     {
@@ -160,16 +172,20 @@ let platforms ~profile ~include_macos ~include_freebsd opam_version =
     let distro = DD.resolve_alias distro in
     let label = DD.latest_tag_of_distro (distro :> DD.t) in
     let tag = DD.tag_of_distro (distro :> DD.t) in
-    let f ov =
-      if distro = master_distro then
-        v label tag (OV.with_variant ov (Some "flambda"))
-        :: List.map
-             (fun arch -> v ~arch label tag ov)
-             (DD.distro_arches ov (distro :> DD.t))
-      else [ v label tag ov ]
+    let ov = OV.(Releases.latest |> with_just_major_and_minor) in
+    let filter_disabled =
+      List.filter_map (fun arch ->
+          if List.mem arch disabled_arches then None
+          else Some (v ~arch label tag ov))
     in
-    List.fold_left (fun l ov -> f ov @ l) [] default_compilers
+    if distro = master_distro then
+      v label tag (OV.with_variant ov (Some "flambda"))
+      :: filter_disabled (DD.distro_arches ov (distro :> DD.t))
+    else
+      v label tag ov
+      :: filter_disabled (supplementary_arches ov master_distro distro)
   in
+
   (* Make platform for OCaml version [ov] using [master_distro] *)
   let make_release ?arch ?(lower_bound = false) ov =
     let distro = DD.tag_of_distro (master_distro :> DD.t) in
@@ -203,7 +219,9 @@ let platforms ~profile ~include_macos ~include_freebsd opam_version =
       let[@warning "-8"] (latest :: previous :: _) =
         List.rev OV.Releases.recent
       in
-      List.map make_release [ latest; previous ]
+      let distros = [ latest; previous ] in
+      let releases = List.map make_release distros in
+      releases
 
 (** When we have the same platform differing only in [lower_bound], for the
     purposes of Docker pulls, take only the platform with [lower_bound = true].
