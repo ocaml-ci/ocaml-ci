@@ -191,7 +191,7 @@ let gitlab_status_of_state head result =
 
 let local_test ~query_uri ~solver repo () =
   let platforms =
-    Conf.fetch_platforms ~query_uri ~include_macos:false ~include_freebsd:false
+    Conf.fetch_platforms ~query_uri ~include_macos:false ~include_freebsd:false ~include_windows:false
       ()
   in
   let src = Git.Local.head_commit repo in
@@ -207,7 +207,7 @@ let local_test ~query_uri ~solver repo () =
 
 let v ?ocluster ~app ~query_uri ~solver ~migrations () =
   let platforms =
-    Conf.fetch_platforms ~query_uri ~include_macos:true ~include_freebsd:true ()
+    Conf.fetch_platforms ~query_uri ~include_macos:true ~include_freebsd:true ~include_windows:true ()
   in
   let ocluster =
     Option.map (Cluster_build.config ~timeout:(Duration.of_hour 1)) ocluster

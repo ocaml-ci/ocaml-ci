@@ -111,7 +111,7 @@ let set_active_refs ~repo refs default_ref =
 
 let local_test ~query_uri ~solver repo () =
   let platforms =
-    Conf.fetch_platforms ~query_uri ~include_macos:false ~include_freebsd:false
+    Conf.fetch_platforms ~query_uri ~include_macos:false ~include_freebsd:false ~include_windows:false
       ()
   in
   let src = Git.Local.head_commit repo in
@@ -130,7 +130,7 @@ let v ?ocluster ~app ~solver ~query_uri ~migrations () =
     Option.map (Cluster_build.config ~timeout:(Duration.of_hour 1)) ocluster
   in
   let platforms =
-    Conf.fetch_platforms ~query_uri ~include_macos:true ~include_freebsd:true ()
+    Conf.fetch_platforms ~query_uri ~include_macos:true ~include_freebsd:true ~include_windows:true ()
   in
   let migrations =
     match migrations with

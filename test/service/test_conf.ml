@@ -22,7 +22,7 @@ let to_tag d = DD.((resolve_alias d :> t) |> tag_of_distro)
 let test_platforms () =
   let platforms =
     Service.Conf.platforms ~profile:`All ~include_macos:true
-      ~include_freebsd:true `V2_1
+      ~include_freebsd:true ~include_windows:true `V2_1
     |> List.map extract
   in
   let exists =
@@ -59,7 +59,7 @@ let test_platforms () =
 let test_macos_platforms () =
   let platforms =
     Service.Conf.platforms ~profile:`All ~include_macos:true
-      ~include_freebsd:true `V2_1
+      ~include_freebsd:true ~include_windows:true `V2_1
     |> List.map extract
   in
   let exists =
@@ -96,7 +96,7 @@ let test_macos_platforms () =
 let test_distro_arches () =
   let platforms =
     Service.Conf.platforms ~profile:`All ~include_macos:true
-      ~include_freebsd:true `V2_1
+      ~include_freebsd:true ~include_windows:true `V2_1
     |> List.map extract
   in
   (* Test that these distros don't occur with these arches under any OCaml version *)

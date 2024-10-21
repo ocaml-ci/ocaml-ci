@@ -89,6 +89,22 @@ type platform = {
   lower_bound : bool;
 }
 
+(* Support OCaml 4.14 on Windows. *)
+let windows_distros =
+  List.map
+    (fun ocaml_version ->
+      {
+        label = "windows-server-2022";
+        builder = Builders.local;
+        pool = `Windows_x86_64;
+        distro = "windows-server-2022-x86_64";
+        ocaml_version;
+        arch = `X86_64;
+        opam_version = `V2_2;
+        lower_bound = false;
+      })
+    OV.(List.map with_just_major_and_minor Releases.[ v4_14 ])
+
 (* Support OCaml default compilers on FreeBSD platform. *)
 let freebsd_distros =
   List.map
@@ -141,7 +157,7 @@ let pool_of_arch = function
   | `Ppc64le -> `Linux_ppc64
   | `Riscv64 -> `Linux_riscv64
 
-let platforms ~profile ~include_macos ~include_freebsd opam_version =
+let platforms ~profile ~include_macos ~include_freebsd ~include_windows opam_version =
   let v ?(arch = `X86_64) ?(lower_bound = false) label distro ocaml_version =
     {
       arch;
@@ -188,6 +204,7 @@ let platforms ~profile ~include_macos ~include_freebsd opam_version =
         distros
         |> List.append (if include_macos then macos_distros else [])
         |> List.append (if include_freebsd then freebsd_distros else [])
+        |> List.append (if include_windows then windows_distros else [])
       in
       (* The first one in this list is used for lint actions *)
       let ovs = List.rev OV.Releases.recent @ OV.Releases.unreleased_betas in
@@ -247,7 +264,7 @@ let merge_lower_bound_platforms platforms =
   in
   upper_bound @ lower_bound
 
-let fetch_platforms ~query_uri ~include_macos ~include_freebsd () =
+let fetch_platforms ~query_uri ~include_macos ~include_freebsd ~include_windows () =
   let open Ocaml_ci in
   let conn =
     Option.map
@@ -270,6 +287,7 @@ let fetch_platforms ~query_uri ~include_macos ~include_freebsd () =
         lower_bound;
       } =
     match (conn, distro) with
+    | Some conn, "windows-server-2022-x86_64"
     | Some conn, "macos-homebrew" | Some conn, "freebsd" ->
         (* FreeBSD and MacOS uses ZFS snapshots rather than docker images. *)
         let docker_image_name =
@@ -307,7 +325,7 @@ let fetch_platforms ~query_uri ~include_macos ~include_freebsd () =
           ~host_base ~opam_version ~lower_bound base
   in
   let v2_2 =
-    platforms ~profile:platforms_profile `V2_2 ~include_macos ~include_freebsd
+    platforms ~profile:platforms_profile `V2_2 ~include_macos ~include_freebsd ~include_windows
     |> merge_lower_bound_platforms
   in
   Current.list_seq (List.map v v2_2) |> Current.map List.flatten
