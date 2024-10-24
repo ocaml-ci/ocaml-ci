@@ -40,7 +40,7 @@ type t = {
 [@@deriving yojson, ord, eq]
 
 let macos_distributions = [ "macos-homebrew" ]
-let windows_distributions = [ "windows-server-2022-x86_64" ]
+let windows_distributions = [ "windows-server-2022" ]
 let freebsd_distributions = [ "freebsd" ]
 
 let os { distro; _ } =
