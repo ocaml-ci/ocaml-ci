@@ -106,7 +106,6 @@ let get ~arch ~label ~conn ~builder ~pool ~distro ~ocaml_version ~opam_version
   match Variant.v ~arch ~distro ~ocaml_version ~opam_version with
   | Error (`Msg m) -> Current.fail m
   | Ok variant ->
-let ()  = Printf.fprintf stderr "%s" label in
       let upper_bound =
         get_docker conn builder variant ~lower_bound:false tag label pool
       in

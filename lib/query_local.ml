@@ -41,14 +41,12 @@ let prepare_image ~job ~docker_context ~tag variant image =
   let prefix =
     match Variant.os variant with
     | `macOS -> "~/local"
-    | `windows
-    | `linux -> "/usr"
+    | `windows | `linux -> "/usr"
     | `freeBSD -> "/usr/local"
   in
   let ln =
     match Variant.os variant with
-    | `windows
-    | `macOS -> "ln"
+    | `windows | `macOS -> "ln"
     | `linux | `freeBSD -> "sudo ln"
   in
   (* XXX: don't overwrite default config? *)
