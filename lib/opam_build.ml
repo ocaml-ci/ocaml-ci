@@ -118,7 +118,7 @@ let install_project_deps ~opam_version ~opam_files ~selection =
     | `windows ->
         [
           Obuilder_spec.Cache.v download_cache
-            ~target:"/Users/opam/AppData/local/opam/download-cache";
+            ~target:"c:\\Users\\opam\\AppData\\local\\opam\\download-cache";
         ]
     | `macOS ->
         [
