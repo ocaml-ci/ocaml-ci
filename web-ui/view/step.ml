@@ -706,20 +706,10 @@ module Make (M : Git_forge_intf.Forge) = struct
       in
       List.filter_map aux data |> String.concat "\n"
     in
-    let collapse_carriage_returns log_line =
-      let rec last = function
-        | [] -> raise (Failure "Trying to take log_line from empty list (BUG)")
-        | [ s ] -> s
-        | _ :: l -> last l
-      in
-      match log_line with
-      | "" -> ""
-      | log_line -> Astring.String.cuts ~sep:"\r" log_line |> last
-    in
     let process_logs data =
       Astring.String.(with_range ~len:(length data - 1)) data
       |> Astring.String.cuts ~sep:"\n"
-      |> List.map (fun l -> collapse_carriage_returns l |> Ansi.process ansi)
+      |> List.map (fun l -> Astring.String.trim l |> Ansi.process ansi)
       |> tabulate
     in
     let open Lwt.Infix in
